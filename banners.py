@@ -1,0 +1,3 @@
+"""
+Banner grabbing functions.
+"""
