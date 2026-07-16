@@ -1,4 +1,5 @@
 import socket
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 COMMON_PORTS = [
     20,
@@ -60,7 +61,20 @@ def get_scan_range():
         return range(1,1025)
 
     elif choice == "3":
-        return range(1,65536)
+
+        print("\nWARNING")
+        print("-" * 40)
+        print("Full Scan checks all 65,535 TCP ports.")
+        print("This may take several minutes depending on the target.")
+        print("-" * 40)
+
+        confirm = input("\nContinue? (y/n): ").strip().lower()
+
+        if confirm == "y":
+            return range(1, 65536)
+        else:
+            print("\nReturning to Scan Menu...\n")
+            return get_scan_range()
 
     elif choice == "4":
         start = int(input("Start Port: "))
@@ -75,7 +89,7 @@ def get_scan_range():
 def scan_port(target, port):
     try:
         scanner = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        scanner.settimeout(0.5)
+        scanner.settimeout(0.2)
 
         result = scanner.connect_ex((target, port))
         scanner.close()
@@ -91,16 +105,23 @@ def scan_port(target, port):
 def scan_ports(target, ports):
     open_ports = []
 
-    print("\nScanning ports...\n")
+    print("\nScanning... Please wait.\n")
 
-    for port in ports:
+    with ThreadPoolExecutor(max_workers=250) as executor:
 
-        if scan_port(target, port):
-            print(f"[OPEN] Port {port}")
-            open_ports.append(port)
+        future_to_port = {
+            executor.submit(scan_port, target, port): port
+            for port in ports
+        }
 
-    return open_ports
+        for future in as_completed(future_to_port):
 
+            port = future_to_port[future]
+
+            if future.result():
+                open_ports.append(port)
+
+    return sorted(open_ports)
 def identify_service(port):
     try:
         service = socket.getservbyport(port)
