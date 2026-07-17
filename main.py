@@ -7,6 +7,7 @@ from utils import (
 from scanner import scan_ports
 from services import identify_service
 from banners import grab_banner
+from vulnerabilities import check_vulnerability
 
 def main():
 
@@ -29,11 +30,20 @@ def main():
             service = identify_service(port)
 
             banner = grab_banner(target, port, service)
+            
+            vulnerability = check_vulnerability(banner)
 
             print("-" * 60)
             print(f"Port    : {port}")
             print(f"Service : {service}")
             print(f"Banner  : {banner}")
+
+            if vulnerability:
+                print(f"Risk    : {vulnerability['risk']}")
+                print(f"Issue   : {vulnerability['issue']}")
+                print(f"Fix     : {vulnerability['recommendation']}")
+            else:
+                print("Risk    : No known vulnerabilities found.")
         print("-" * 60)
     else:
 
