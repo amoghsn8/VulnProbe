@@ -1,3 +1,4 @@
+import socket
 def identify_service(port):
     try:
         service = socket.getservbyport(port)

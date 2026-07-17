@@ -5,8 +5,8 @@ from utils import (
 )
 
 from scanner import scan_ports
-
 from services import identify_service
+from banners import grab_banner
 
 def main():
 
@@ -28,8 +28,13 @@ def main():
 
             service = identify_service(port)
 
-            print(f"{port:<6} -> {service}")
+            banner = grab_banner(target, port, service)
 
+            print("-" * 60)
+            print(f"Port    : {port}")
+            print(f"Service : {service}")
+            print(f"Banner  : {banner}")
+        print("-" * 60)
     else:
 
         print("\nNo open ports found.")
